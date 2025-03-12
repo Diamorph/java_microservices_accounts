@@ -54,6 +54,18 @@ public class AccountServiceImpl implements IAccountsService {
         return newAccounts;
     }
 
+    private Customer findCustomerById(Long customerId) {
+        return customerRepository.findById(customerId).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "CustomerId", customerId.toString())
+        );
+    }
+
+    private Accounts findAccountsById(Long accountNumber) {
+        return accountsRepository.findById(accountNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Account", "AccountNumber", accountNumber.toString())
+        );
+    }
+
     @Override
     public CustomerDto fetchAccount(String mobileNumber) {
         Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
@@ -63,7 +75,29 @@ public class AccountServiceImpl implements IAccountsService {
                 () -> new ResourceNotFoundException("Account", "customerId", customer.getCustomerId().toString())
         );
         CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer, new CustomerDto());
-        customerDto.setAccounts(List.of(AccountsMapper.mapToAccountsDto(accounts, new AccountsDto())));
+        customerDto.setAccounts(AccountsMapper.mapToAccountsDto(accounts, new AccountsDto()));
         return customerDto;
     }
+
+    @Override
+    public boolean updateAccount(CustomerDto customerDto) {
+        boolean isUpdated = false;
+
+        AccountsDto accountsDto = customerDto.getAccounts();
+        if (accountsDto != null) {
+            Accounts accounts = this.findAccountsById(accountsDto.getAccountNumber());
+            AccountsMapper.mapToAccounts(accountsDto, accounts);
+            accounts = accountsRepository.save(accounts);
+
+            Long customerId = accounts.getCustomerId();
+            Customer customer = this.findCustomerById(customerId);
+            CustomerMapper.mapToCustomer(customerDto, customer);
+            customerRepository.save(customer);
+            isUpdated = true;
+        }
+
+        return isUpdated;
+    }
+
+
 }
