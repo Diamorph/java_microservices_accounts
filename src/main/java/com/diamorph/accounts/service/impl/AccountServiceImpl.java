@@ -1,10 +1,13 @@
 package com.diamorph.accounts.service.impl;
 
 import com.diamorph.accounts.constacts.AccountConstants;
+import com.diamorph.accounts.dto.AccountsDto;
 import com.diamorph.accounts.dto.CustomerDto;
 import com.diamorph.accounts.entity.Accounts;
 import com.diamorph.accounts.entity.Customer;
 import com.diamorph.accounts.exception.CustomerAlreadyExistsException;
+import com.diamorph.accounts.exception.ResourceNotFoundException;
+import com.diamorph.accounts.mapper.AccountsMapper;
 import com.diamorph.accounts.mapper.CustomerMapper;
 import com.diamorph.accounts.repository.AccountsRepository;
 import com.diamorph.accounts.repository.CustomerRepository;
@@ -13,6 +16,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -50,5 +54,16 @@ public class AccountServiceImpl implements IAccountsService {
         return newAccounts;
     }
 
-
+    @Override
+    public CustomerDto fetchAccount(String mobileNumber) {
+        Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
+        );
+        Accounts accounts = accountsRepository.findByCustomerId(customer.getCustomerId()).orElseThrow(
+                () -> new ResourceNotFoundException("Account", "customerId", customer.getCustomerId().toString())
+        );
+        CustomerDto customerDto = CustomerMapper.mapToCustomerDto(customer, new CustomerDto());
+        customerDto.setAccounts(List.of(AccountsMapper.mapToAccountsDto(accounts, new AccountsDto())));
+        return customerDto;
+    }
 }
