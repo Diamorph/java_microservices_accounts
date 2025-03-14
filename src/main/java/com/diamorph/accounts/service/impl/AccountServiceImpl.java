@@ -16,7 +16,6 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.Random;
 
@@ -60,6 +59,12 @@ public class AccountServiceImpl implements IAccountsService {
         );
     }
 
+    private Customer findCustomerByMobileNumber(String mobileNumber) {
+        return customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
+                () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
+        );
+    }
+
     private Accounts findAccountsById(Long accountNumber) {
         return accountsRepository.findById(accountNumber).orElseThrow(
                 () -> new ResourceNotFoundException("Account", "AccountNumber", accountNumber.toString())
@@ -68,9 +73,7 @@ public class AccountServiceImpl implements IAccountsService {
 
     @Override
     public CustomerDto fetchAccount(String mobileNumber) {
-        Customer customer = customerRepository.findByMobileNumber(mobileNumber).orElseThrow(
-                () -> new ResourceNotFoundException("Customer", "mobileNumber", mobileNumber)
-        );
+        Customer customer = this.findCustomerByMobileNumber(mobileNumber);
         Accounts accounts = accountsRepository.findByCustomerId(customer.getCustomerId()).orElseThrow(
                 () -> new ResourceNotFoundException("Account", "customerId", customer.getCustomerId().toString())
         );
@@ -97,6 +100,15 @@ public class AccountServiceImpl implements IAccountsService {
         }
 
         return isUpdated;
+    }
+
+    @Override
+    public boolean deleteAccount(String mobileNumber) {
+        Customer customer = this.findCustomerByMobileNumber(mobileNumber);
+        Long customerId = customer.getCustomerId();
+        accountsRepository.deleteByCustomerId(customerId);
+        customerRepository.deleteById(customerId);
+        return true;
     }
 
 
