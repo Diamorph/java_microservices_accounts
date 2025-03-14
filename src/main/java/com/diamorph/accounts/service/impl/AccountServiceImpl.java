@@ -15,7 +15,6 @@ import com.diamorph.accounts.service.IAccountsService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Random;
 
@@ -34,8 +33,6 @@ public class AccountServiceImpl implements IAccountsService {
         if (optionalCustomer.isPresent()) {
             throw new CustomerAlreadyExistsException("Customer is already registered with a given mobile number " + customerDto.getMobileNumber());
         }
-        customer.setCreatedAt(LocalDateTime.now());
-        customer.setCreateBy("Anonymous");
         Customer savedCustomer = customerRepository.save(customer);
         accountsRepository.save(createNewAccount(savedCustomer));
     }
@@ -48,8 +45,6 @@ public class AccountServiceImpl implements IAccountsService {
         newAccounts.setAccountNumber(randomAccNumber);
         newAccounts.setAccountType(AccountConstants.SAVINGS);
         newAccounts.setBranchAddress(AccountConstants.ADDRESS);
-        newAccounts.setCreatedAt(LocalDateTime.now());
-        newAccounts.setCreateBy("Anonymous");
         return newAccounts;
     }
 
