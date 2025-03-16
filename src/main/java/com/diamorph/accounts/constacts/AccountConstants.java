@@ -1,6 +1,6 @@
 package com.diamorph.accounts.constacts;
 
-public class AccountConstants {
+public final class AccountConstants {
 
     private AccountConstants() {
         // restrict instantiation
